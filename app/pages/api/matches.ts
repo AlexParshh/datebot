@@ -9,7 +9,8 @@ type ResponseData = {
 };
 
 const requestBodySchema = z.object({
-  count: z.number().default(100),
+  xAuthToken: z.string(),
+  userSessionId: z.string()
 });
 
 // request must contian
@@ -30,7 +31,8 @@ const handlePostRequest = async (
 ) => {
 
   try {
-    const matches = await getMatches();
+    const { xAuthToken, userSessionId } = requestBodySchema.parse(req.body);
+    const matches = await getMatches(xAuthToken, userSessionId);
     res.status(200).json({ matches, message: "Success." });
   } catch (error) {
     console.error("Invalid request body:", error);
@@ -38,10 +40,10 @@ const handlePostRequest = async (
 
 };
 
-const getMatches = async () => {
-  const xAuthToken = "ad457a2a-9500-4d9f-8008-f702299086b5";
-  const appSessionId = "3d806021-1a6e-47ae-adc3-8bbfea45e7e3";
-  const userSessionId = "895248a5-e6f7-4a58-b630-ae97a8c7202c";
+const getMatches = async (xAuthToken: string, userSessionId: string) => {
+  // const xAuthToken = "ad457a2a-9500-4d9f-8008-f702299086b5";
+  // const appSessionId = "3d806021-1a6e-47ae-adc3-8bbfea45e7e3";
+  // const userSessionId = "895248a5-e6f7-4a58-b630-ae97a8c7202c";
   // ben info
   // const xAuthToken = "dbdfbecc-3568-49d1-9b5c-9692eba37ccb";
   // const appSessionId = "bb1cdf67-0c12-474e-a98b-81d93fcc96b8";
@@ -49,7 +51,7 @@ const getMatches = async () => {
 
   const tinderAxios: AxiosInstance = createTinderAxios(
     xAuthToken,
-    appSessionId,
+    "",
     userSessionId
   );
 
