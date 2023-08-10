@@ -4,7 +4,6 @@ import { AxiosInstance } from "axios";
 
 type ResponseData = {
   message: string;
-  matches: any;
 };
 
 export default function handler(
@@ -14,7 +13,7 @@ export default function handler(
   if (req.method === "POST") {
     handlePostRequest(req, res);
   } else {
-    res.status(400).json({ matches: null, message: "Invalid request method" });
+    res.status(400).json({ message: "Invalid request method" });
   }
 }
 
@@ -22,13 +21,24 @@ const handlePostRequest = async (
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) => {
-  const matches = await getMatches();
+  const matchId = "64644e786a37a00100445b1a64692f733a1a4c0100adfd51";
+  const userId = "64692f733a1a4c0100adfd51";
+  const otherId = "64644e786a37a00100445b1a"
+  const message = "test 2"
 
-  res.status(200).json({ matches, message: "Success." });
+  await sendMessage(matchId, userId, otherId, message);
+
+  res.status(200).json({ message: "Success." });
 };
 
-const getMatches = async () => {
-
+// userId is the ID of the main user
+// otherId is the ID of the person the user is matched with (the person you want to message)
+const sendMessage = async (
+  matchId: string,
+  userId: string,
+  otherId: string,
+  message: string
+) => {
   const xAuthToken = "ad457a2a-9500-4d9f-8008-f702299086b5";
   const appSessionId = "3d806021-1a6e-47ae-adc3-8bbfea45e7e3";
   const userSessionId = "895248a5-e6f7-4a58-b630-ae97a8c7202c";
@@ -43,32 +53,22 @@ const getMatches = async () => {
     userSessionId
   );
 
-  let matches: any = []
-  let nextPageToken = "";
+  const postBody = {
+    userId,
+    otherId,
+    matchId,
+    sessionId: null,
+    message,
+  };
+
   try {
-
-    while (true) {
-
-      let currentMatchesBatch;
-
-      if (nextPageToken) {
-        currentMatchesBatch =  await tinderAxios.get(`/v2/matches?count=100&page_token=${nextPageToken}`);
-      } else {
-        currentMatchesBatch =  await tinderAxios.get(`/v2/matches?count=100`);
-      }
-
-      matches = matches.concat(currentMatchesBatch.data.data.matches)
-
-      if (currentMatchesBatch.data.data.next_page_token) {
-        nextPageToken = currentMatchesBatch.data.data.next_page_token
-      } else {
-        break
-      }
-    }
-
-    return matches;
+    await tinderAxios.post(
+      `user/matches/${matchId}?locale=en`,
+      postBody
+    );
+    return
   } catch (e) {
     console.error(e);
-    return;
+    return
   }
 };
