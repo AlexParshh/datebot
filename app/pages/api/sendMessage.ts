@@ -32,16 +32,19 @@ const handlePostRequest = async (
   res: NextApiResponse<ResponseData>
 ) => {
 
-  const { matchId, profileId, otherId, xAuthToken, userSessionId, message } = requestBodySchema.parse(req.body);
-
   // const matchId = "64644e786a37a00100445b1a64692f733a1a4c0100adfd51";
   // const userId = "64692f733a1a4c0100adfd51";
   // const otherId = "64644e786a37a00100445b1a"
   // const message = "test 2"
+  try {
+    const { matchId, profileId, otherId, xAuthToken, userSessionId, message } = requestBodySchema.parse(req.body);
+    await sendMessage(matchId, profileId, otherId, message, xAuthToken, userSessionId);
+    res.status(200).json({ message: "Success." });
+  } catch (e) {
+    console.error(e)
+    res.status(200).json({ message: "Fail." });
+  }
 
-  await sendMessage(matchId, profileId, otherId, message, xAuthToken, userSessionId);
-
-  res.status(200).json({ message: "Success." });
 };
 
 // userId is the ID of the main user
