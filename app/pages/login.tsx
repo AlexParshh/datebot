@@ -8,23 +8,31 @@ import {
   Input,
   Button,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useRouter } from 'next/router';
+import { getAuthCredentialsFromLocalStorage } from "../lib/storage";
 
 const LoginPage = () => {
   const { setAuthCredentials } = useAuth();
-  const [xAuthToken, setXAuthToken] = useState("");
-  const [userSessionId, setUserSessionId] = useState("");
+  const [xAuthTokenValue, setXAuthToken] = useState("");
+  const [userSessionIdValue, setUserSessionId] = useState("");
 
   const router = useRouter();
 
+  // check if user is already logged in and redirect home if they are
+  useEffect(() => {
+    const { xAuthToken, userSessionId } = getAuthCredentialsFromLocalStorage();
+    if (xAuthToken && userSessionId) {
+        console.log("Values exist", xAuthToken, userSessionId)
+        router.push("/");
+    }
+  }, [])
+
   const handleLogin = () => {
     // Simulate authentication (replace this with actual authentication logic)
-    setAuthCredentials(xAuthToken, userSessionId);
-
+    setAuthCredentials(xAuthTokenValue, userSessionIdValue);
     router.push("/")
-    
   };
 
   return (
@@ -38,7 +46,7 @@ const LoginPage = () => {
       <Box p={4} width="400px" bg="white" borderRadius="md" boxShadow="md">
         <Flex pt={3} justifyContent="center">
           <Heading size="md" mb={2}>
-            Welcome to Tinder Bot
+            Welcome to Tinder Assistant
           </Heading>
         </Flex>
         <Flex pt={3} justifyContent="center">
@@ -54,7 +62,7 @@ const LoginPage = () => {
             <FormLabel>X-Auth-Token</FormLabel>
             <Input
               type="text"
-              value={xAuthToken}
+              value={xAuthTokenValue}
               onChange={(e) => setXAuthToken(e.target.value)}
               required
             />
@@ -63,7 +71,7 @@ const LoginPage = () => {
             <FormLabel>User-Session-ID</FormLabel>
             <Input
               type="text"
-              value={userSessionId}
+              value={userSessionIdValue}
               onChange={(e) => setUserSessionId(e.target.value)}
               required
             />
