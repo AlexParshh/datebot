@@ -10,7 +10,8 @@ type ResponseData = {
 
 const requestBodySchema = z.object({
   xAuthToken: z.string(),
-  userSessionId: z.string()
+  userSessionId: z.string(),
+  userId: z.string()
 });
 
 // request must contian
@@ -31,8 +32,8 @@ const handlePostRequest = async (
 ) => {
 
   try {
-    const { xAuthToken, userSessionId } = requestBodySchema.parse(req.body);
-    const userProfile = await getProfile(xAuthToken, userSessionId);
+    const { xAuthToken, userSessionId, userId } = requestBodySchema.parse(req.body);
+    const userProfile = await getMatchProfile(xAuthToken, userSessionId, userId);
     res.status(200).json({ profile:userProfile, message: "Success." });
   } catch (error) {
     console.error("Invalid request body:", error);
@@ -41,14 +42,8 @@ const handlePostRequest = async (
 
 };
 
-const getProfile = async (xAuthToken: string, userSessionId: string) => {
-  // const xAuthToken = "ad457a2a-9500-4d9f-8008-f702299086b5";
-  // const appSessionId = "3d806021-1a6e-47ae-adc3-8bbfea45e7e3";
-  // const userSessionId = "895248a5-e6f7-4a58-b630-ae97a8c7202c";
-  // ben info
-  // const xAuthToken = "dbdfbecc-3568-49d1-9b5c-9692eba37ccb";
-  // const appSessionId = "bb1cdf67-0c12-474e-a98b-81d93fcc96b8";
-  // const userSessionId = "a4609f6d-21d0-4ee7-8fa9-9f37e6e9a053";
+// userId is the ID of the user whose information you want to get
+const getMatchProfile = async (xAuthToken: string, userSessionId: string, userId: string) => {
 
   const tinderAxios: AxiosInstance = createTinderAxios(
     xAuthToken,
@@ -57,9 +52,8 @@ const getProfile = async (xAuthToken: string, userSessionId: string) => {
   );
 
   try {
-    const profile = await tinderAxios.get("/v2/profile?locale=en&include=likes%2Cofferings%2Cpaywalls%2Cplus_control%2Cpurchase%2Cuser");
-    console.log(profile)
-    return profile.data.data
+    const profile = await tinderAxios.get(`/user/${userId}?locale=en`);
+    return profile.data.results
   } catch (e) {
     console.error(e)
     return
