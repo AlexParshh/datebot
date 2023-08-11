@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { Box, Heading, Button, Flex } from '@chakra-ui/react';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
+import MatchesTabs from '../components/MatchesTabs';
 
 const HomePage = () => {
   const router = useRouter();
@@ -69,12 +70,12 @@ const HomePage = () => {
         </Heading>
         <Button onClick={handleLogout}>Logout</Button>
       </Flex>
-      {profile && (
+      {(profile && matches) && (
         <Box mt={4}>
           <Heading size="md">
-            Welcome back {profile ? profile.name+"!" : ""} {matches ? `You have ${matches.length} total matches!`: ""}
+            Welcome back {profile.name}! {`You have ${matches.messagedMatches.length+matches.unMessagedMatches.length} total matches!`}
           </Heading>
-          {/* You can add more personalized content here */}
+          <MatchesTabs matches={matches} profileId={profile._id}/>
         </Box>
       )}
     </Box>

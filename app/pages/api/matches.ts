@@ -33,7 +33,8 @@ const handlePostRequest = async (
   try {
     const { xAuthToken, userSessionId } = requestBodySchema.parse(req.body);
     const matches = await getMatches(xAuthToken, userSessionId);
-    res.status(200).json({ matches, message: "Success." });
+    const organizedMatches = organizeMatches(matches);
+    res.status(200).json({ matches: organizedMatches, message: "Success." });
   } catch (error) {
     console.error("Invalid request body:", error);
   }
@@ -84,3 +85,32 @@ const getMatches = async (xAuthToken: string, userSessionId: string) => {
     return;
   }
 };
+
+
+// this will categorize matches into different categories:
+// 1. messaged: matches that have already been messaged or that have already messaged you first
+// 2. unmessaged/unseen: matches that have 0 messages or have not been seen yet
+// "matches[i].messages" displays the most recent message and who sent it, which we can use to determine whose
+// turn it is in the conversation. If we have already messaged we do not want to generate another follow up.
+const organizeMatches = (matches: any) => {
+
+  const messagedMatches = []
+  const unMessagedMatches = []
+
+  for (let i = 0; i < matches.length; i++) {
+
+    const currentMatch = matches[i]
+
+    if (currentMatch.messages.length) {
+      messagedMatches.push(currentMatch)
+    } else {
+      unMessagedMatches.push(currentMatch)
+    }
+
+  }
+
+  return {
+    messagedMatches,
+    unMessagedMatches
+  };
+}
