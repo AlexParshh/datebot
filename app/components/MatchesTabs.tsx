@@ -10,19 +10,28 @@ import {
   SimpleGrid,
   Image,
   Text,
+  Link,
   Button,
 } from "@chakra-ui/react";
 import axios from "axios";
 import { useAuth } from "../contexts/AuthContext";
-import { setMessageById, getMessageById, deleteMessageById } from "../lib/storage";
+import {
+  setMessageById,
+  getMessageById,
+  deleteMessageById,
+} from "../lib/storage";
 
 interface MatchesTabsProps {
   matches: any; // Replace with the actual type for your matches object
   profileId: string;
-  fetchMatches: () => void
+  fetchMatches: () => void;
 }
 
-const MatchesTabs: React.FC<MatchesTabsProps> = ({ matches, profileId, fetchMatches }) => {
+const MatchesTabs: React.FC<MatchesTabsProps> = ({
+  matches,
+  profileId,
+  fetchMatches,
+}) => {
   const [tabIndex, setTabIndex] = useState(0);
   const [generatedRizzMessages, setGeneratedRizzMessages] = useState<{
     [key: string]: string;
@@ -57,44 +66,47 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({ matches, profileId, fetchMatc
     }
   };
 
-  const onClickGenerateConversation = async (userId:string, matchId:string) => {
+  const onClickGenerateConversation = async (
+    userId: string,
+    matchId: string
+  ) => {
     console.log("Creating conversation rizz for, ", userId);
 
     try {
-        const pickupline = await axios.post("/api/generateConversation", {
-          xAuthToken,
-          userSessionId,
-          userId,
-          matchId,
-          profileId
-        });
-  
-        // id will be in the format of YOUR_ID-MATCH_USER_ID
-        // store the generated rizz in localStorage because too lazy to make a database
-        setMessageById(
-          profileId + "-" + userId,
-          pickupline.data.pickupline.content
-        );
-  
-        // update generatedRizzMessages to display the result
-        setGeneratedRizzMessages((prevState) => ({
-          ...prevState,
-          [userId]: pickupline.data.pickupline.content,
-        }));
-      } catch (e) {
-        console.error(e);
-      }
-  }
+      const pickupline = await axios.post("/api/generateConversation", {
+        xAuthToken,
+        userSessionId,
+        userId,
+        matchId,
+        profileId,
+      });
+
+      // id will be in the format of YOUR_ID-MATCH_USER_ID
+      // store the generated rizz in localStorage because too lazy to make a database
+      setMessageById(
+        profileId + "-" + userId,
+        pickupline.data.pickupline.content
+      );
+
+      // update generatedRizzMessages to display the result
+      setGeneratedRizzMessages((prevState) => ({
+        ...prevState,
+        [userId]: pickupline.data.pickupline.content,
+      }));
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   // method to remove generated rizz from UI state
-  const removeGeneratedRizz = (userIdToRemove:string) => {
+  const removeGeneratedRizz = (userIdToRemove: string) => {
     setGeneratedRizzMessages((prevState) => {
       // Create a copy of the state object
       const newState = { ...prevState };
-  
+
       // Delete the key-value pair with the specified userId
       delete newState[userIdToRemove];
-  
+
       return newState;
     });
   };
@@ -115,11 +127,10 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({ matches, profileId, fetchMatc
 
       // @TODO: need to handle updating UI top move match from unmessaged to messaged tab (if they were unmessaged)
       // and clearing the rizz for that match from localStorage
-      
-      deleteMessageById(profileId+"-"+userId);
-      removeGeneratedRizz(userId)
-      fetchMatches();
 
+      deleteMessageById(profileId + "-" + userId);
+      removeGeneratedRizz(userId);
+      fetchMatches();
     } catch (e) {
       console.error(e);
     }
@@ -192,9 +203,11 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({ matches, profileId, fetchMatc
                         boxSize="100px"
                         borderRadius={"5px"}
                       />
-                      <Text mt={2} fontWeight="bold">
-                        {match.person.name}
-                      </Text>
+                      <Link href={"https://tinder.com/app/messages/"+match.id} target="_blank" rel="noopener noreferrer">
+                        <Text mt={2} fontWeight="bold">
+                          {match.person.name}
+                        </Text>
+                      </Link>
                       <Text>
                         {match.messages[0].from === profileId
                           ? "Me: " + match.messages[0].message
@@ -203,7 +216,13 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({ matches, profileId, fetchMatc
                             match.messages[0].message}
                       </Text>
                     </Flex>
-                    <Button mt="auto" bg="white" onClick={() => onClickGenerateConversation(match.person._id, match.id)}>
+                    <Button
+                      mt="auto"
+                      bg="white"
+                      onClick={() =>
+                        onClickGenerateConversation(match.person._id, match.id)
+                      }
+                    >
                       {" "}
                       Generate Rizz
                       <Image
@@ -263,9 +282,11 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({ matches, profileId, fetchMatc
                         boxSize="100px"
                         borderRadius={"5px"}
                       />
-                      <Text mt={2} fontWeight="bold">
-                        {match.person.name}
-                      </Text>
+                      <Link href={"https://tinder.com/app/messages/"+match.id} target="_blank" rel="noopener noreferrer">
+                        <Text mt={2} fontWeight="bold">
+                          {match.person.name}
+                        </Text>
+                      </Link>
                       {match.person.bio ? (
                         <Text>Bio: {match.person.bio}</Text>
                       ) : null}
