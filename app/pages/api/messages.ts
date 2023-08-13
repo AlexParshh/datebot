@@ -44,7 +44,7 @@ const handlePostRequest = async (
   }
 };
 
-const getMessages = async (matchId: string, xAuthToken: string, userSessionId: string) => {
+export const getMessages = async (matchId: string, xAuthToken: string, userSessionId: string) => {
 //   const xAuthToken = "ad457a2a-9500-4d9f-8008-f702299086b5";
 //   const appSessionId = "3d806021-1a6e-47ae-adc3-8bbfea45e7e3";
 //   const userSessionId = "895248a5-e6f7-4a58-b630-ae97a8c7202c";
@@ -94,7 +94,7 @@ const getMessages = async (matchId: string, xAuthToken: string, userSessionId: s
 
 // clean messages array for easier interpretation by chatgpt
 // returns an array of chronological clean messages
-const cleanMessages = (messages: any[], userProfileId: string) => {
+export const cleanMessages = (messages: any[], userProfileId: string) => {
   const cleanMessages = [];
 
   for (let i = 0; i < messages.length; i++) {

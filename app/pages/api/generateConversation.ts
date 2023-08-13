@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 import { Configuration, OpenAIApi } from "openai";
-import { getMatchProfile, cleanMatchProfile } from "./matchprofile";
+import { getMessages, cleanMessages } from "./messages";
 
 type ResponseData = {
   message: string;
@@ -10,6 +10,8 @@ type ResponseData = {
 
 const requestBodySchema = z.object({
   userId: z.string(),
+  matchId: z.string(),
+  profileId: z.string(),
   xAuthToken: z.string(),
   userSessionId: z.string(),
 });
@@ -31,13 +33,14 @@ const handlePostRequest = async (
   res: NextApiResponse<ResponseData>
 ) => {
   try {
-    const { userId, xAuthToken, userSessionId } = requestBodySchema.parse(
-      req.body
-    );
-    const pickupline = await generatePickupLine(
+    const { userId, xAuthToken, userSessionId, matchId, profileId } =
+      requestBodySchema.parse(req.body);
+    const pickupline = await generateConversation(
       xAuthToken,
       userSessionId,
-      userId
+      userId,
+      matchId,
+      profileId
     );
     res.status(200).json({ pickupline, message: "Success." });
   } catch (error) {
@@ -46,19 +49,13 @@ const handlePostRequest = async (
   }
 };
 
-// this method will take in a match's profile and generate an opening line to message to them
-// the available information that is provided to chatgpt, in terms of importance is:
-// 1. Match bio
-// 2. Match name
-// 3. Match hobbies/interests @TODO: need to make an aditional endpoint to query this more specific data
-// 4. Match music of interest
-// ---------------------------
-// If none of the above information is available, we will randomly pick from a list of 100 openers that are proven
-// to work and return that line.
-const generatePickupLine = async (
+// this method will take in a match's message history and generate a follow up message for them.
+const generateConversation = async (
   xAuthToken: string,
   userSessionId: string,
-  userId: string
+  userId: string,
+  matchId: string,
+  profileId: string
 ) => {
   const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
@@ -66,18 +63,16 @@ const generatePickupLine = async (
   const openai = new OpenAIApi(configuration);
 
   // first we need to get all of the matches specific information
-  const matchProfile = await getMatchProfile(xAuthToken, userSessionId, userId);
-  const cleanedMatchProfile = cleanMatchProfile(matchProfile);
+  //   const matchProfile = await getMatchProfile(xAuthToken, userSessionId, userId);
+  //   const cleanedMatchProfile = cleanMatchProfile(matchProfile);
 
-  // if the user does not have a bio, use the hardcoded line
-  if (!cleanedMatchProfile.bio) {
-    return { content: "Hey Trouble" };
-  }
+  const messageHistory = await getMessages(matchId, xAuthToken, userSessionId);
+  const cleanMessageHistory = cleanMessages(messageHistory, profileId);
+  const messagesString = JSON.stringify(cleanMessageHistory);
 
-  const matchProfileString = JSON.stringify(cleanedMatchProfile);
   const prompt =
-    "Write a short one sentence kinky pick up line for this tinder profile, please relate it to their bio: " +
-    matchProfileString;
+    "Respond to the following tinder message history in a funny and flirty manner, only output the next follow up message I would send nothing else, DO NOT ADD QUOTATION MARKS AROUND THE RESPONSE: " +
+    messagesString;
 
   const chatCompletion = await openai.createChatCompletion({
     model: "gpt-3.5-turbo",

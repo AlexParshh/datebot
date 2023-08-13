@@ -24,7 +24,6 @@ const LoginPage = () => {
   useEffect(() => {
     const { xAuthToken, userSessionId } = getAuthCredentialsFromLocalStorage();
     if (xAuthToken && userSessionId) {
-        console.log("Values exist", xAuthToken, userSessionId)
         router.push("/");
     }
   }, [])

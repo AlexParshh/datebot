@@ -58,7 +58,6 @@ const getProfile = async (xAuthToken: string, userSessionId: string) => {
 
   try {
     const profile = await tinderAxios.get("/v2/profile?locale=en&include=likes%2Cofferings%2Cpaywalls%2Cplus_control%2Cpurchase%2Cuser");
-    console.log(profile)
     return profile.data.data
   } catch (e) {
     console.error(e)

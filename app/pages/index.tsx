@@ -11,6 +11,20 @@ const HomePage = () => {
   const [profile, setProfile] = useState<any>(null);
   const [matches, setMatches] = useState<any>(null);
 
+  const fetchMatches = async () => {
+    try {
+      const response = await axios.post('/api/matches', {
+        xAuthToken,
+        userSessionId,
+      });
+
+      // Set the profile state with the response data
+      setMatches(response.data.matches);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  }
+
   useEffect(() => {
     // Check if the user is logged in
     if (!xAuthToken || !userSessionId) {
@@ -33,20 +47,6 @@ const HomePage = () => {
         console.error('Error fetching profile:', error);
       }
     };
-
-    const fetchMatches = async () => {
-      try {
-        const response = await axios.post('/api/matches', {
-          xAuthToken,
-          userSessionId,
-        });
-
-        // Set the profile state with the response data
-        setMatches(response.data.matches);
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-      }
-    }
 
     fetchProfile();
     fetchMatches();
@@ -75,7 +75,7 @@ const HomePage = () => {
           <Heading size="md">
             Welcome back {profile.name}! {`You have ${matches.messagedMatches.length+matches.unMessagedMatches.length} total matches!`}
           </Heading>
-          <MatchesTabs matches={matches} profileId={profile._id}/>
+          <MatchesTabs matches={matches} profileId={profile._id} fetchMatches={fetchMatches}/>
         </Box>
       )}
     </Box>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   TabList,
   TabPanels,
@@ -7,24 +7,145 @@ import {
   Tabs,
   Box,
   Flex,
-  Heading,
   SimpleGrid,
   Image,
   Text,
-  IconButton,
   Button,
 } from "@chakra-ui/react";
-import { RiAiGenerate } from "react-icons/ri"; // Import the icon from react-icons
-import { BsFillChatLeftFill } from "react-icons/bs";
-import chatgpticon from "../assets/chatgpticon.png";
+import axios from "axios";
+import { useAuth } from "../contexts/AuthContext";
+import { setMessageById, getMessageById, deleteMessageById } from "../lib/storage";
 
 interface MatchesTabsProps {
   matches: any; // Replace with the actual type for your matches object
   profileId: string;
+  fetchMatches: () => void
 }
 
-const MatchesTabs: React.FC<MatchesTabsProps> = ({ matches, profileId }) => {
+const MatchesTabs: React.FC<MatchesTabsProps> = ({ matches, profileId, fetchMatches }) => {
   const [tabIndex, setTabIndex] = useState(0);
+  const [generatedRizzMessages, setGeneratedRizzMessages] = useState<{
+    [key: string]: string;
+  }>({});
+
+  const { xAuthToken, userSessionId } = useAuth();
+
+  const onClickGenerateRizz = async (userId: string) => {
+    console.log("Getting rizz for, ", userId);
+
+    try {
+      const pickupline = await axios.post("/api/generatepickupline", {
+        xAuthToken,
+        userSessionId,
+        userId,
+      });
+
+      // id will be in the format of YOUR_ID-MATCH_USER_ID
+      // store the generated rizz in localStorage because too lazy to make a database
+      setMessageById(
+        profileId + "-" + userId,
+        pickupline.data.pickupline.content
+      );
+
+      // update generatedRizzMessages to display the result
+      setGeneratedRizzMessages((prevState) => ({
+        ...prevState,
+        [userId]: pickupline.data.pickupline.content,
+      }));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const onClickGenerateConversation = async (userId:string, matchId:string) => {
+    console.log("Creating conversation rizz for, ", userId);
+
+    try {
+        const pickupline = await axios.post("/api/generateConversation", {
+          xAuthToken,
+          userSessionId,
+          userId,
+          matchId,
+          profileId
+        });
+  
+        // id will be in the format of YOUR_ID-MATCH_USER_ID
+        // store the generated rizz in localStorage because too lazy to make a database
+        setMessageById(
+          profileId + "-" + userId,
+          pickupline.data.pickupline.content
+        );
+  
+        // update generatedRizzMessages to display the result
+        setGeneratedRizzMessages((prevState) => ({
+          ...prevState,
+          [userId]: pickupline.data.pickupline.content,
+        }));
+      } catch (e) {
+        console.error(e);
+      }
+  }
+
+  // method to remove generated rizz from UI state
+  const removeGeneratedRizz = (userIdToRemove:string) => {
+    setGeneratedRizzMessages((prevState) => {
+      // Create a copy of the state object
+      const newState = { ...prevState };
+  
+      // Delete the key-value pair with the specified userId
+      delete newState[userIdToRemove];
+  
+      return newState;
+    });
+  };
+
+  const onClickSendRizz = async (userId: string, matchId: string) => {
+    console.log("Sending rizz for, ", userId);
+
+    try {
+      const message = generatedRizzMessages[userId];
+      await axios.post("/api/sendMessage", {
+        matchId,
+        profileId,
+        otherId: userId,
+        xAuthToken,
+        userSessionId,
+        message,
+      });
+
+      // @TODO: need to handle updating UI top move match from unmessaged to messaged tab (if they were unmessaged)
+      // and clearing the rizz for that match from localStorage
+      
+      deleteMessageById(profileId+"-"+userId);
+      removeGeneratedRizz(userId)
+      fetchMatches();
+
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    // initialize generatedRizzMessages with localStorage one time on initial UI load
+    const rizzMessages: any = {};
+
+    for (let i = 0; i < matches.unMessagedMatches.length; i++) {
+      const matchUserId: string = matches.unMessagedMatches[i].person._id;
+      const rizz = getMessageById(profileId + "-" + matchUserId);
+      if (rizz) {
+        rizzMessages[matchUserId] = rizz;
+      }
+    }
+    for (let i = 0; i < matches.messagedMatches.length; i++) {
+      const matchUserId: string = matches.messagedMatches[i].person._id;
+      const rizz = getMessageById(profileId + "-" + matchUserId);
+      if (rizz) {
+        rizzMessages[matchUserId] = rizz;
+      }
+    }
+
+    setGeneratedRizzMessages(rizzMessages);
+  }, []);
 
   return (
     <Box mt={4}>
@@ -82,7 +203,7 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({ matches, profileId }) => {
                             match.messages[0].message}
                       </Text>
                     </Flex>
-                    <Button mt="auto">
+                    <Button mt="auto" bg="white" onClick={() => onClickGenerateConversation(match.person._id, match.id)}>
                       {" "}
                       Generate Rizz
                       <Image
@@ -92,6 +213,30 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({ matches, profileId }) => {
                         width="30px"
                       />
                     </Button>
+                    {generatedRizzMessages[match.person._id] ? (
+                      <>
+                        <Button
+                          bg="white"
+                          mt={2}
+                          onClick={() =>
+                            onClickSendRizz(match.person._id, match.id)
+                          }
+                        >
+                          {" "}
+                          Send Rizz 🔥
+                        </Button>{" "}
+                        <Box
+                          borderRadius="md"
+                          bg="white"
+                          p={2}
+                          mt={2}
+                          textColor={"black"}
+                        >
+                          <Text fontWeight="bold">Rizz:</Text>
+                          <Text>{generatedRizzMessages[match.person._id]}</Text>
+                        </Box>
+                      </>
+                    ) : null}
                   </Box>
                 ))}
               </SimpleGrid>
@@ -121,9 +266,15 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({ matches, profileId }) => {
                       <Text mt={2} fontWeight="bold">
                         {match.person.name}
                       </Text>
-                      <Text>Bio: {match.person.bio}</Text>
+                      {match.person.bio ? (
+                        <Text>Bio: {match.person.bio}</Text>
+                      ) : null}
                     </Flex>
-                    <Button mt="auto">
+                    <Button
+                      mt="auto"
+                      bg="white"
+                      onClick={() => onClickGenerateRizz(match.person._id)}
+                    >
                       {" "}
                       Generate Rizz
                       <Image
@@ -133,6 +284,31 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({ matches, profileId }) => {
                         width="30px"
                       />
                     </Button>
+
+                    {generatedRizzMessages[match.person._id] ? (
+                      <>
+                        <Button
+                          bg="white"
+                          mt={2}
+                          onClick={() =>
+                            onClickSendRizz(match.person._id, match.id)
+                          }
+                        >
+                          {" "}
+                          Send Rizz 🔥
+                        </Button>{" "}
+                        <Box
+                          borderRadius="md"
+                          bg="white"
+                          p={2}
+                          mt={2}
+                          textColor={"black"}
+                        >
+                          <Text fontWeight="bold">Rizz:</Text>
+                          <Text>{generatedRizzMessages[match.person._id]}</Text>
+                        </Box>
+                      </>
+                    ) : null}
                   </Box>
                 ))}
               </SimpleGrid>

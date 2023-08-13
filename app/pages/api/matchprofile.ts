@@ -43,7 +43,7 @@ const handlePostRequest = async (
 };
 
 // userId is the ID of the user whose information you want to get
-const getMatchProfile = async (xAuthToken: string, userSessionId: string, userId: string) => {
+export const getMatchProfile = async (xAuthToken: string, userSessionId: string, userId: string) => {
 
   const tinderAxios: AxiosInstance = createTinderAxios(
     xAuthToken,
@@ -59,3 +59,23 @@ const getMatchProfile = async (xAuthToken: string, userSessionId: string, userId
     return
   }
 };
+
+export const cleanMatchProfile = (matchProfile: any) => {
+
+    const descriptors = []
+
+    if (matchProfile.selected_descriptors) {
+        for (let i = 0; i < matchProfile.selected_descriptors.length; i++) {
+            descriptors.push({prompt: matchProfile.selected_descriptors[i].prompt, choice: matchProfile.selected_descriptors[i].choice_selections})
+        }
+    }
+
+    return {
+        bio: matchProfile?.bio,
+        name: matchProfile?.name,
+        // schools: matchProfile?.schools,
+        // interests: matchProfile?.user_interests?.selected_interests,
+        // descriptors,
+        // prompts: matchProfile?.user_prompts?.prompts
+    }
+}
