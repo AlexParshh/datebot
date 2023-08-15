@@ -6,6 +6,7 @@ import {
   removeEdgeQuotes,
   createPromptForBio,
   createPromptWithoutBio,
+  ModelType,
 } from "../../lib/gpt";
 
 type ResponseData = {
@@ -13,10 +14,13 @@ type ResponseData = {
   pickupline: any;
 };
 
+export const ZodModelType = z.enum(['GPT-3.5-Turbo', 'GPT-4']);
+
 const requestBodySchema = z.object({
   userId: z.string(),
   xAuthToken: z.string(),
   userSessionId: z.string(),
+  model: ZodModelType,
 });
 
 // request must contian
@@ -36,13 +40,13 @@ const handlePostRequest = async (
   res: NextApiResponse<ResponseData>
 ) => {
   try {
-    const { userId, xAuthToken, userSessionId } = requestBodySchema.parse(
-      req.body
-    );
+    const { userId, xAuthToken, userSessionId, model } =
+      requestBodySchema.parse(req.body);
     const pickupline = await generatePickupLine(
       xAuthToken,
       userSessionId,
-      userId
+      userId,
+      model
     );
     res.status(200).json({ pickupline, message: "Success." });
   } catch (error) {
@@ -59,7 +63,8 @@ const handlePostRequest = async (
 const generatePickupLine = async (
   xAuthToken: string,
   userSessionId: string,
-  userId: string
+  userId: string,
+  model: ModelType
 ) => {
   const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
@@ -73,10 +78,9 @@ const generatePickupLine = async (
   // if the user does not have a bio, use the remaining parts of their profile.
   let prompt;
   if (!cleanedMatchProfile.bio) {
-
     // Boring matches get boring pickup lines
     if (!cleanedMatchProfile.prompts && !cleanedMatchProfile.interests) {
-        return "Hey Trouble"
+      return "Hey Trouble";
     }
 
     prompt = createPromptWithoutBio(JSON.stringify(cleanedMatchProfile));
@@ -91,7 +95,7 @@ const generatePickupLine = async (
   }
 
   const chatCompletion = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo",
+    model: model.toLowerCase(),
     messages: [{ role: "user", content: prompt }],
   });
 

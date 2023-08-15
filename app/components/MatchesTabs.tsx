@@ -22,12 +22,14 @@ import {
 } from "../lib/storage";
 
 interface MatchesTabsProps {
+  settings: any;
   matches: any; // Replace with the actual type for your matches object
   profileId: string;
   fetchMatches: () => void;
 }
 
 const MatchesTabs: React.FC<MatchesTabsProps> = ({
+  settings,
   matches,
   profileId,
   fetchMatches,
@@ -43,10 +45,13 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({
     console.log("Getting rizz for, ", userId);
 
     try {
+      console.log(settings);
+
       const pickupline = await axios.post("/api/generatepickupline", {
         xAuthToken,
         userSessionId,
         userId,
+        model: settings.model || "GPT-3.5-Turbo",
       });
 
       console.log("Generated rizz: ", pickupline.data.pickupline);
@@ -72,12 +77,21 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({
     console.log("Creating conversation rizz for, ", userId);
 
     try {
-      const message = await axios.post("/api/generateConversation", {
+      const message = await axios.post("/api/generateconversation", {
         xAuthToken,
         userSessionId,
         userId,
         matchId,
         profileId,
+        model: settings.model || "GPT-3.5-Turbo",
+        // if user has provided additional information then it will be included in the message generation prompt
+        personalInfo:
+          settings.phoneNumber ||
+          settings.snapchat ||
+          settings.instagram ||
+          settings.backgroundInfo
+            ? JSON.stringify(settings)
+            : null,
       });
 
       console.log("Generated rizz: ", message);
@@ -121,9 +135,6 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({
         userSessionId,
         message,
       });
-
-      // @TODO: need to handle updating UI top move match from unmessaged to messaged tab (if they were unmessaged)
-      // and clearing the rizz for that match from localStorage
 
       deleteMessageById(profileId + "-" + userId);
       removeGeneratedRizz(userId);
@@ -267,13 +278,13 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({
               <SimpleGrid columns={4} spacing={4}>
                 {matches.unMessagedMatches.map((match: any) => (
                   <Box
-                  key={match._id}
-                  p={4}
-                  backgroundColor={"darkgray"}
-                  borderRadius="md"
-                  textAlign="center"
-                  display="flex"
-                  flexDirection="column" // Stack items vertically
+                    key={match._id}
+                    p={4}
+                    backgroundColor={"darkgray"}
+                    borderRadius="md"
+                    textAlign="center"
+                    display="flex"
+                    flexDirection="column" // Stack items vertically
                   >
                     <Flex direction="column" alignItems="center" pb={2}>
                       <Image
@@ -283,7 +294,11 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({
                         height="145px"
                         borderRadius={"5px"}
                       />
-                      <Link href={"https://tinder.com/app/messages/"+match.id} target="_blank" rel="noopener noreferrer">
+                      <Link
+                        href={"https://tinder.com/app/messages/" + match.id}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         <Text mt={2} fontWeight="bold">
                           {match.person.name}
                         </Text>

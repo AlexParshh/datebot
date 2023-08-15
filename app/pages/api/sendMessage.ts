@@ -31,11 +31,6 @@ const handlePostRequest = async (
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) => {
-
-  // const matchId = "64644e786a37a00100445b1a64692f733a1a4c0100adfd51";
-  // const userId = "64692f733a1a4c0100adfd51";
-  // const otherId = "64644e786a37a00100445b1a"
-  // const message = "test 2"
   try {
     const { matchId, profileId, otherId, xAuthToken, userSessionId, message } = requestBodySchema.parse(req.body);
     await sendMessage(matchId, profileId, otherId, message, xAuthToken, userSessionId);
@@ -57,13 +52,6 @@ const sendMessage = async (
   xAuthToken: string,
   userSessionId: string
 ) => {
-  // const xAuthToken = "ad457a2a-9500-4d9f-8008-f702299086b5";
-  // const appSessionId = "3d806021-1a6e-47ae-adc3-8bbfea45e7e3";
-  // const userSessionId = "895248a5-e6f7-4a58-b630-ae97a8c7202c";
-  // ben info
-  // const xAuthToken = "dbdfbecc-3568-49d1-9b5c-9692eba37ccb";
-  // const appSessionId = "bb1cdf67-0c12-474e-a98b-81d93fcc96b8";
-  // const userSessionId = "a4609f6d-21d0-4ee7-8fa9-9f37e6e9a053";
 
   const tinderAxios: AxiosInstance = createTinderAxios(
     xAuthToken,

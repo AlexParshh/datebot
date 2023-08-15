@@ -2,12 +2,19 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 import { Configuration, OpenAIApi } from "openai";
 import { getMessages, cleanMessages } from "./messages";
-import { removeEdgeQuotes } from "../../lib/gpt";
+import {
+  ModelType,
+  createConvoPromptWithInfo,
+  createConvoPromptWithoutInfo,
+  removeEdgeQuotes,
+} from "../../lib/gpt";
 
 type ResponseData = {
   message: string;
   response: any;
 };
+
+export const ZodModelType = z.enum(["GPT-3.5-Turbo", "GPT-4"]);
 
 const requestBodySchema = z.object({
   userId: z.string(),
@@ -15,6 +22,8 @@ const requestBodySchema = z.object({
   profileId: z.string(),
   xAuthToken: z.string(),
   userSessionId: z.string(),
+  model: ZodModelType,
+  personalInfo: z.string().optional(),
 });
 
 // request must contian
@@ -34,14 +43,23 @@ const handlePostRequest = async (
   res: NextApiResponse<ResponseData>
 ) => {
   try {
-    const { userId, xAuthToken, userSessionId, matchId, profileId } =
-      requestBodySchema.parse(req.body);
+    const {
+      userId,
+      xAuthToken,
+      userSessionId,
+      matchId,
+      profileId,
+      model,
+      personalInfo,
+    } = requestBodySchema.parse(req.body);
     const response = await generateConversation(
       xAuthToken,
       userSessionId,
       userId,
       matchId,
-      profileId
+      profileId,
+      model,
+      personalInfo
     );
     res.status(200).json({ response, message: "Success." });
   } catch (error) {
@@ -56,29 +74,35 @@ const generateConversation = async (
   userSessionId: string,
   userId: string,
   matchId: string,
-  profileId: string
+  profileId: string,
+  model: ModelType,
+  personalInfo: string | undefined
 ) => {
   const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
   });
   const openai = new OpenAIApi(configuration);
 
-  // first we need to get all of the matches specific information
-  //   const matchProfile = await getMatchProfile(xAuthToken, userSessionId, userId);
-  //   const cleanedMatchProfile = cleanMatchProfile(matchProfile);
-
   const messageHistory = await getMessages(matchId, xAuthToken, userSessionId);
   const cleanMessageHistory = cleanMessages(messageHistory, profileId);
   const messagesString = JSON.stringify(cleanMessageHistory);
 
-  const prompt =
-    "Respond to the following tinder message history in a funny and flirty manner, only output the next follow up message I would send nothing else, DO NOT ADD QUOTATION MARKS AROUND THE RESPONSE: " +
-    messagesString;
+  // if we have additional personal information, we will use that in the prompt.
+  let prompt;
+  if (personalInfo) {
+    prompt = createConvoPromptWithInfo(personalInfo, messagesString);
+  } else {
+    prompt = createConvoPromptWithoutInfo(messagesString);
+  }
+
+  console.log(prompt)
 
   const chatCompletion = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo",
-    messages: [{ role: "user", content: prompt }],
+    model: model.toLowerCase(),
+    messages: [{ role: "system", content: prompt }],
   });
 
-  return removeEdgeQuotes(chatCompletion.data.choices[0].message?.content || "");
+  return removeEdgeQuotes(
+    chatCompletion.data.choices[0].message?.content || ""
+  );
 };

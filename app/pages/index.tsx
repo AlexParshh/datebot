@@ -126,6 +126,7 @@ const HomePage = () => {
             } total matches!`}
           </Heading>
           <MatchesTabs
+            settings={settings}
             matches={matches}
             profileId={profile._id}
             fetchMatches={fetchMatches}
