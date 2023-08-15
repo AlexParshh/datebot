@@ -73,8 +73,15 @@ const generatePickupLine = async (
   // if the user does not have a bio, use the remaining parts of their profile.
   let prompt;
   if (!cleanedMatchProfile.bio) {
+
+    // Boring matches get boring pickup lines
+    if (!cleanedMatchProfile.prompts && !cleanedMatchProfile.interests) {
+        return "Hey Trouble"
+    }
+
     prompt = createPromptWithoutBio(JSON.stringify(cleanedMatchProfile));
   } else {
+    // otherwise we emphasize the pickup line specifically on their bio
     prompt = createPromptForBio(
       JSON.stringify({
         bio: cleanedMatchProfile.bio,
