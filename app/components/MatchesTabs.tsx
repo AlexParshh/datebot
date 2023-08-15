@@ -49,17 +49,19 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({
         userId,
       });
 
+      console.log("Generated rizz: ", pickupline.data.pickupline)
+
       // id will be in the format of YOUR_ID-MATCH_USER_ID
       // store the generated rizz in localStorage because too lazy to make a database
       setMessageById(
         profileId + "-" + userId,
-        pickupline.data.pickupline.content
+        pickupline.data.pickupline
       );
 
       // update generatedRizzMessages to display the result
       setGeneratedRizzMessages((prevState) => ({
         ...prevState,
-        [userId]: pickupline.data.pickupline.content,
+        [userId]: pickupline.data.pickupline,
       }));
     } catch (e) {
       console.error(e);
@@ -73,7 +75,7 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({
     console.log("Creating conversation rizz for, ", userId);
 
     try {
-      const pickupline = await axios.post("/api/generateConversation", {
+      const message = await axios.post("/api/generateConversation", {
         xAuthToken,
         userSessionId,
         userId,
@@ -81,17 +83,18 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({
         profileId,
       });
 
+      console.log("Generated rizz: ", message)
       // id will be in the format of YOUR_ID-MATCH_USER_ID
       // store the generated rizz in localStorage because too lazy to make a database
       setMessageById(
         profileId + "-" + userId,
-        pickupline.data.pickupline.content
+        message.data.response
       );
 
       // update generatedRizzMessages to display the result
       setGeneratedRizzMessages((prevState) => ({
         ...prevState,
-        [userId]: pickupline.data.pickupline.content,
+        [userId]: message.data.response,
       }));
     } catch (e) {
       console.error(e);
@@ -279,7 +282,8 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({
                       <Image
                         src={match.person.photos[0].url}
                         alt={match.person.name}
-                        boxSize="100px"
+                        width="115px"
+                        height="145px"
                         borderRadius={"5px"}
                       />
                       <Link href={"https://tinder.com/app/messages/"+match.id} target="_blank" rel="noopener noreferrer">

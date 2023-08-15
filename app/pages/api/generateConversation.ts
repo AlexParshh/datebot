@@ -2,10 +2,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 import { Configuration, OpenAIApi } from "openai";
 import { getMessages, cleanMessages } from "./messages";
+import { removeEdgeQuotes } from "../../lib/gpt";
 
 type ResponseData = {
   message: string;
-  pickupline: any;
+  response: any;
 };
 
 const requestBodySchema = z.object({
@@ -24,7 +25,7 @@ export default function handler(
   if (req.method === "POST") {
     handlePostRequest(req, res);
   } else {
-    res.status(400).json({ pickupline: "", message: "Invalid request method" });
+    res.status(400).json({ response: "", message: "Invalid request method" });
   }
 }
 
@@ -35,17 +36,17 @@ const handlePostRequest = async (
   try {
     const { userId, xAuthToken, userSessionId, matchId, profileId } =
       requestBodySchema.parse(req.body);
-    const pickupline = await generateConversation(
+    const response = await generateConversation(
       xAuthToken,
       userSessionId,
       userId,
       matchId,
       profileId
     );
-    res.status(200).json({ pickupline, message: "Success." });
+    res.status(200).json({ response, message: "Success." });
   } catch (error) {
     console.error("Invalid request body:", error);
-    res.status(400).json({ pickupline: "", message: "Fail." });
+    res.status(400).json({ response: "", message: "Fail." });
   }
 };
 
@@ -79,5 +80,5 @@ const generateConversation = async (
     messages: [{ role: "user", content: prompt }],
   });
 
-  return chatCompletion.data.choices[0].message;
+  return removeEdgeQuotes(chatCompletion.data.choices[0].message?.content || "");
 };

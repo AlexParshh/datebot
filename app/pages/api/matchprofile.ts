@@ -73,9 +73,9 @@ export const cleanMatchProfile = (matchProfile: any) => {
     return {
         bio: matchProfile?.bio,
         name: matchProfile?.name,
-        // schools: matchProfile?.schools,
-        // interests: matchProfile?.user_interests?.selected_interests,
-        // descriptors,
-        // prompts: matchProfile?.user_prompts?.prompts
+        schools: matchProfile?.schools,
+        interests: matchProfile?.user_interests?.selected_interests,
+        descriptors,
+        prompts: matchProfile?.user_prompts?.prompts
     }
 }

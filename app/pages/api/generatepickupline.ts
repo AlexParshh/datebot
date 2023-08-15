@@ -2,6 +2,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 import { Configuration, OpenAIApi } from "openai";
 import { getMatchProfile, cleanMatchProfile } from "./matchprofile";
+import {
+  removeEdgeQuotes,
+  createPromptForBio,
+  createPromptWithoutBio,
+} from "../../lib/gpt";
 
 type ResponseData = {
   message: string;
@@ -50,11 +55,7 @@ const handlePostRequest = async (
 // the available information that is provided to chatgpt, in terms of importance is:
 // 1. Match bio
 // 2. Match name
-// 3. Match hobbies/interests @TODO: need to make an aditional endpoint to query this more specific data
-// 4. Match music of interest
-// ---------------------------
-// If none of the above information is available, we will randomly pick from a list of 100 openers that are proven
-// to work and return that line.
+// 3. Match hobbies/interests
 const generatePickupLine = async (
   xAuthToken: string,
   userSessionId: string,
@@ -69,20 +70,25 @@ const generatePickupLine = async (
   const matchProfile = await getMatchProfile(xAuthToken, userSessionId, userId);
   const cleanedMatchProfile = cleanMatchProfile(matchProfile);
 
-  // if the user does not have a bio, use the hardcoded line
+  // if the user does not have a bio, use the remaining parts of their profile.
+  let prompt;
   if (!cleanedMatchProfile.bio) {
-    return { content: "Hey Trouble" };
+    prompt = createPromptWithoutBio(JSON.stringify(cleanedMatchProfile));
+  } else {
+    prompt = createPromptForBio(
+      JSON.stringify({
+        bio: cleanedMatchProfile.bio,
+        name: cleanedMatchProfile.name,
+      })
+    );
   }
-
-  const matchProfileString = JSON.stringify(cleanedMatchProfile);
-  const prompt =
-    "Write a short one sentence kinky pick up line for this tinder profile, please relate it to their bio: " +
-    matchProfileString;
 
   const chatCompletion = await openai.createChatCompletion({
     model: "gpt-3.5-turbo",
     messages: [{ role: "user", content: prompt }],
   });
 
-  return chatCompletion.data.choices[0].message;
+  return removeEdgeQuotes(
+    chatCompletion.data.choices[0].message?.content || ""
+  );
 };
