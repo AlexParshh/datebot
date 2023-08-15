@@ -49,14 +49,11 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({
         userId,
       });
 
-      console.log("Generated rizz: ", pickupline.data.pickupline)
+      console.log("Generated rizz: ", pickupline.data.pickupline);
 
       // id will be in the format of YOUR_ID-MATCH_USER_ID
       // store the generated rizz in localStorage because too lazy to make a database
-      setMessageById(
-        profileId + "-" + userId,
-        pickupline.data.pickupline
-      );
+      setMessageById(profileId + "-" + userId, pickupline.data.pickupline);
 
       // update generatedRizzMessages to display the result
       setGeneratedRizzMessages((prevState) => ({
@@ -83,13 +80,10 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({
         profileId,
       });
 
-      console.log("Generated rizz: ", message)
+      console.log("Generated rizz: ", message);
       // id will be in the format of YOUR_ID-MATCH_USER_ID
       // store the generated rizz in localStorage because too lazy to make a database
-      setMessageById(
-        profileId + "-" + userId,
-        message.data.response
-      );
+      setMessageById(profileId + "-" + userId, message.data.response);
 
       // update generatedRizzMessages to display the result
       setGeneratedRizzMessages((prevState) => ({
@@ -168,7 +162,7 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({
         colorScheme="teal"
         onChange={(index) => setTabIndex(index)}
       >
-        <TabList>
+        <TabList borderBottom="none">
           <Tab
             _selected={{ color: "teal.800", bg: "white" }}
             _focus={{ boxShadow: "none" }}
@@ -192,8 +186,7 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({
                   <Box
                     key={match._id}
                     p={4}
-                    border="2px solid teal"
-                    borderColor="teal.800"
+                    backgroundColor={"darkgray"}
                     borderRadius="md"
                     textAlign="center"
                     display="flex"
@@ -203,10 +196,15 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({
                       <Image
                         src={match.person.photos[0].url}
                         alt={match.person.name}
-                        boxSize="100px"
+                        height={"145px"}
+                        width={"110px"}
                         borderRadius={"5px"}
                       />
-                      <Link href={"https://tinder.com/app/messages/"+match.id} target="_blank" rel="noopener noreferrer">
+                      <Link
+                        href={"https://tinder.com/app/messages/" + match.id}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         <Text mt={2} fontWeight="bold">
                           {match.person.name}
                         </Text>
@@ -221,7 +219,7 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({
                     </Flex>
                     <Button
                       mt="auto"
-                      bg="white"
+                      backgroundColor={"white"}
                       onClick={() =>
                         onClickGenerateConversation(match.person._id, match.id)
                       }
@@ -269,14 +267,13 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({
               <SimpleGrid columns={4} spacing={4}>
                 {matches.unMessagedMatches.map((match: any) => (
                   <Box
-                    key={match._id}
-                    p={4}
-                    border="2px solid teal"
-                    borderColor="teal.800"
-                    borderRadius="md"
-                    textAlign="center"
-                    display="flex"
-                    flexDirection="column" // Stack items vertically
+                  key={match._id}
+                  p={4}
+                  backgroundColor={"darkgray"}
+                  borderRadius="md"
+                  textAlign="center"
+                  display="flex"
+                  flexDirection="column" // Stack items vertically
                   >
                     <Flex direction="column" alignItems="center" pb={2}>
                       <Image

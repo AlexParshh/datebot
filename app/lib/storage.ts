@@ -47,3 +47,37 @@ export const getMessageById = (id: string): string | null => {
         return null;
     }
 };
+
+// Save the settings object to local storage
+export const setSettingsToLocalStorage = (settings: {
+    model: 'GPT-3.5-Turbo' | 'GPT-4';
+    backgroundInfo: string;
+    instagram: string;
+    snapchat: string;
+    phoneNumber: string;
+}): void => {
+    try {
+        const serializedSettings = JSON.stringify(settings);
+        localStorage.setItem('userSettings', serializedSettings);
+    } catch (error) {
+        console.error('Could not save settings to local storage:', error);
+    }
+};
+
+// Retrieve the settings object from local storage
+export const getSettingsFromLocalStorage = (): {
+    model: 'GPT-3.5-Turbo' | 'GPT-4';
+    backgroundInfo: string;
+    instagram: string;
+    snapchat: string;
+    phoneNumber: string;
+} | null => {
+    try {
+        const serializedSettings = localStorage.getItem('userSettings');
+        if (serializedSettings === null) return null;
+        return JSON.parse(serializedSettings);
+    } catch (error) {
+        console.error('Could not retrieve settings from local storage:', error);
+        return null;
+    }
+};

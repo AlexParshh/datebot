@@ -1,9 +1,22 @@
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import { Box, Heading, Button, Flex } from '@chakra-ui/react';
-import { useAuth } from '../contexts/AuthContext';
-import axios from 'axios';
-import MatchesTabs from '../components/MatchesTabs';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import {
+  Box,
+  Heading,
+  Button,
+  Flex,
+  IconButton,
+  useDisclosure,
+} from "@chakra-ui/react";
+import { useAuth } from "../contexts/AuthContext";
+import axios from "axios";
+import MatchesTabs from "../components/MatchesTabs";
+import { SettingsIcon } from "@chakra-ui/icons";
+import SettingsModal from "../components/SettingsModal";
+import {
+  setSettingsToLocalStorage,
+  getSettingsFromLocalStorage,
+} from "../lib/storage";
 
 const HomePage = () => {
   const router = useRouter();
@@ -11,9 +24,26 @@ const HomePage = () => {
   const [profile, setProfile] = useState<any>(null);
   const [matches, setMatches] = useState<any>(null);
 
+  // Model, Background Info, Social Media Handles, Phone Number
+  const [settings, setSettings] = useState<{
+    model: "GPT-3.5-Turbo" | "GPT-4";
+    backgroundInfo: string;
+    instagram: string;
+    snapchat: string;
+    phoneNumber: string;
+  }>({
+    model: "GPT-3.5-Turbo",
+    backgroundInfo: "",
+    instagram: "",
+    snapchat: "",
+    phoneNumber: "",
+  });
+
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
   const fetchMatches = async () => {
     try {
-      const response = await axios.post('/api/matches', {
+      const response = await axios.post("/api/matches", {
         xAuthToken,
         userSessionId,
       });
@@ -21,22 +51,22 @@ const HomePage = () => {
       // Set the profile state with the response data
       setMatches(response.data.matches);
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error("Error fetching profile:", error);
     }
-  }
+  };
 
   useEffect(() => {
     // Check if the user is logged in
     if (!xAuthToken || !userSessionId) {
       // Redirect to the login page
-      router.push('/login');
+      router.push("/login");
       return;
     }
 
     // Fetch profile data
     const fetchProfile = async () => {
       try {
-        const response = await axios.post('/api/profile', {
+        const response = await axios.post("/api/profile", {
           xAuthToken,
           userSessionId,
         });
@@ -44,7 +74,7 @@ const HomePage = () => {
         // Set the profile state with the response data
         setProfile(response.data.profile.user);
       } catch (error) {
-        console.error('Error fetching profile:', error);
+        console.error("Error fetching profile:", error);
       }
     };
 
@@ -54,28 +84,52 @@ const HomePage = () => {
 
   const handleLogout = () => {
     clearAuthCredentials();
-    router.push('/login');
+    router.push("/login");
   };
 
   return (
     <Box
       p={4}
-      bgGradient="linear(to-b, teal.400, teal.700)"
+      backgroundColor={"gray"}
       height="100vh"
       color="white"
     >
+      <SettingsModal
+        isOpen={isOpen}
+        onClose={onClose}
+        setSettings={(settings) => {
+          setSettings(settings);
+          setSettingsToLocalStorage(settings);
+        }}
+      />
       <Flex justifyContent="space-between" alignItems="center">
         <Heading size="lg" as="h1">
           🚀 Tinder Assistant
         </Heading>
-        <Button onClick={handleLogout}>Logout</Button>
+
+        <Flex>
+          <IconButton
+            mr={2}
+            aria-label="Settings"
+            icon={<SettingsIcon />}
+            onClick={onOpen}
+          />
+          <Button onClick={handleLogout}>Logout</Button>
+        </Flex>
       </Flex>
-      {(profile && matches) && (
+      {profile && matches && (
         <Box mt={4}>
           <Heading size="md">
-            Welcome back {profile.name}! {`You have ${matches.messagedMatches.length+matches.unMessagedMatches.length} total matches!`}
+            Welcome back {profile.name}!{" "}
+            {`You have ${
+              matches.messagedMatches.length + matches.unMessagedMatches.length
+            } total matches!`}
           </Heading>
-          <MatchesTabs matches={matches} profileId={profile._id} fetchMatches={fetchMatches}/>
+          <MatchesTabs
+            matches={matches}
+            profileId={profile._id}
+            fetchMatches={fetchMatches}
+          />
         </Box>
       )}
     </Box>
