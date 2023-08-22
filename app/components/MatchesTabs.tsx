@@ -28,6 +28,8 @@ interface MatchesTabsProps {
   fetchMatches: () => void;
 }
 
+const PICKUP_LINE_ID = "000000000000000000000000";
+
 const MatchesTabs: React.FC<MatchesTabsProps> = ({
   settings,
   matches,
@@ -58,7 +60,7 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({
 
       // id will be in the format of YOUR_ID-MATCH_USER_ID
       // store the generated rizz in localStorage because too lazy to make a database
-      setMessageById(profileId + "-" + userId, pickupline.data.pickupline);
+      setMessageById(profileId + "-" + userId, PICKUP_LINE_ID+"-"+pickupline.data.pickupline);
 
       // update generatedRizzMessages to display the result
       setGeneratedRizzMessages((prevState) => ({
@@ -91,13 +93,13 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({
           settings.instagram ||
           settings.backgroundInfo
             ? JSON.stringify(settings)
-            : null,
+            : undefined,
       });
 
       console.log("Generated rizz: ", message);
       // id will be in the format of YOUR_ID-MATCH_USER_ID
       // store the generated rizz in localStorage because too lazy to make a database
-      setMessageById(profileId + "-" + userId, message.data.response);
+      setMessageById(profileId + "-" + userId, message.data.latestMessageId+"-"+message.data.response);
 
       // update generatedRizzMessages to display the result
       setGeneratedRizzMessages((prevState) => ({
@@ -152,14 +154,29 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({
       const matchUserId: string = matches.unMessagedMatches[i].person._id;
       const rizz = getMessageById(profileId + "-" + matchUserId);
       if (rizz) {
-        rizzMessages[matchUserId] = rizz;
+        // need to check if they have been messaged on the app, if so we need to clear the previously generated rizz
+        if (matches.unMessagedMatches[i].messages[0]) {
+          deleteMessageById(profileId + "-" + matchUserId);
+        } else {
+            rizzMessages[matchUserId] = rizz.slice(25);
+        }
       }
     }
     for (let i = 0; i < matches.messagedMatches.length; i++) {
       const matchUserId: string = matches.messagedMatches[i].person._id;
       const rizz = getMessageById(profileId + "-" + matchUserId);
       if (rizz) {
-        rizzMessages[matchUserId] = rizz;
+
+        const currentLastMessageId = matches.messagedMatches[i].messages[0]._id;
+        const messageIdForGeneratedConvo = rizz.slice(0,24)
+
+        if (messageIdForGeneratedConvo !== currentLastMessageId) {
+            // there has been messaging on the app after this message was generated, so we must clear it from localStorage
+            // the message ID that the response was generated for is now no longer the latest message ID.
+            deleteMessageById(profileId + "-" + matchUserId);
+        } else {
+            rizzMessages[matchUserId] = rizz.slice(25);
+        }
       }
     }
 

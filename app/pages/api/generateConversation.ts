@@ -11,6 +11,7 @@ import {
 
 type ResponseData = {
   message: string;
+  latestMessageId: string;
   response: any;
 };
 
@@ -34,7 +35,13 @@ export default function handler(
   if (req.method === "POST") {
     handlePostRequest(req, res);
   } else {
-    res.status(400).json({ response: "", message: "Invalid request method" });
+    res
+      .status(400)
+      .json({
+        response: "",
+        latestMessageId: "",
+        message: "Invalid request method",
+      });
   }
 }
 
@@ -52,7 +59,7 @@ const handlePostRequest = async (
       model,
       personalInfo,
     } = requestBodySchema.parse(req.body);
-    const response = await generateConversation(
+    const { response, latestMessageId } = await generateConversation(
       xAuthToken,
       userSessionId,
       userId,
@@ -61,10 +68,12 @@ const handlePostRequest = async (
       model,
       personalInfo
     );
-    res.status(200).json({ response, message: "Success." });
+    res.status(200).json({ response, latestMessageId, message: "Success." });
   } catch (error) {
     console.error("Invalid request body:", error);
-    res.status(400).json({ response: "", message: "Fail." });
+    res
+      .status(400)
+      .json({ response: "", latestMessageId: "", message: "Fail." });
   }
 };
 
@@ -84,6 +93,9 @@ const generateConversation = async (
   const openai = new OpenAIApi(configuration);
 
   const messageHistory = await getMessages(matchId, xAuthToken, userSessionId);
+  const latestMessageId = messageHistory.slice(-1)[0]._id;
+
+  console.log(latestMessageId)
   const cleanMessageHistory = cleanMessages(messageHistory, profileId);
   const messagesString = JSON.stringify(cleanMessageHistory);
 
@@ -95,14 +107,15 @@ const generateConversation = async (
     prompt = createConvoPromptWithoutInfo(messagesString);
   }
 
-  console.log(prompt)
-
   const chatCompletion = await openai.createChatCompletion({
     model: model.toLowerCase(),
     messages: [{ role: "system", content: prompt }],
   });
 
-  return removeEdgeQuotes(
-    chatCompletion.data.choices[0].message?.content || ""
-  );
+  return {
+    response: removeEdgeQuotes(
+      chatCompletion.data.choices[0].message?.content || ""
+    ),
+    latestMessageId,
+  };
 };
