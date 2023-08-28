@@ -7,7 +7,7 @@ export const removeEdgeQuotes = (text: string) => text.replace(/^['"]|['"]$/g, '
 export const createPromptForBio = (profile: string) => {
     return `Instructions:
 
-    Write a short one sentence kinky pick up line that is also teasing in nature for the following tinder profile: ${profile}
+    Write a short kinky one sentence pick up line that is also teasing in nature for the following tinder profile: ${profile}
     
     Requirements:
     Please reference their bio.
@@ -16,7 +16,7 @@ export const createPromptForBio = (profile: string) => {
 export const createPromptWithoutBio = (profile: string) => {
     return `Instructions:
 
-    Write a short one sentence kinky pick up line that is also teasing in nature for the following tinder profile: ${profile}
+    Write a short kinky one sentence pick up line that is also teasing in nature for the following tinder profile: ${profile}
     
     Requirements:
     Please reference some part of their profile.
@@ -26,25 +26,27 @@ export const createPromptWithoutBio = (profile: string) => {
 // Conversation prompts
 
 export const createConvoPromptWithInfo = (personalInfo: string, messages: string) => {
-    return `Respond to the following tinder message history in a funny and flirty manner.
+    return `Respond to the following tinder message history in a funny, flirty and very kinky manner.
     
     Requirements:
     Only write a SINGLE follow up response message, not an entire dialogue.
     If the last message was sent by ME, then generate a follow up message from me.
-    After about 20-30 messages, try to ask for their phone number, this is the ultimate goal of the conversation.
-    Here is a list of my personal information, in case they ask about anything related to me, its OK to give them my contact details: ${personalInfo}
+    After about 20 messages, ask for their phone number, this is the ultimate goal of the conversation.
+    Respond with a single sentence.
+    In case the match asks for my contact details, or anything about me, respond with the corresponding information: ${personalInfo}
 
     Here is the message history: ${messages}
     `
 }
 
 export const createConvoPromptWithoutInfo = (messages: string) => {
-    return `Respond to the following tinder message history in a funny and flirty manner.
+    return `Respond to the following tinder message history in a funny, flirty and very kinky manner.
     
     Requirements:
     Only write a SINGLE follow up response message, not an entire dialogue.
     If the last message was sent by ME, then generate a follow up message from me.
-    After about 20-30 messages, try to ask for their phone number, this is the ultimate goal of the conversation.
+    After 20 messages, ask for their phone number, this is the ultimate goal of the conversation.
+    Respond with a single sentence.
     
     Here is the message history: ${messages}`
 }
