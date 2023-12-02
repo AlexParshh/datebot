@@ -24,6 +24,7 @@ import {
 interface MatchesTabsProps {
   settings: any;
   matches: any; // Replace with the actual type for your matches object
+  recs: any;
   profileId: string;
   fetchMatches: () => void;
 }
@@ -33,11 +34,17 @@ const PICKUP_LINE_ID = "000000000000000000000000";
 const MatchesTabs: React.FC<MatchesTabsProps> = ({
   settings,
   matches,
+  recs,
   profileId,
   fetchMatches,
 }) => {
   const [tabIndex, setTabIndex] = useState(0);
   const [generatedRizzMessages, setGeneratedRizzMessages] = useState<{
+    [key: string]: string;
+  }>({});
+
+  // array of userIds that we have matched with through our explore interface
+  const [matchedExploreIds, setMatchedExploreIds] = useState<{
     [key: string]: string;
   }>({});
 
@@ -146,6 +153,41 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({
     }
   };
 
+  const onClickSendLike = async (userId: string) => {
+    console.log("Sending like for, ", userId);
+    try {
+      const res = await axios.post("/api/like", {
+        userId,
+        xAuthToken,
+        userSessionId,
+      });
+
+      if (res.data.likeResult.match) {
+        setMatchedExploreIds({...matchedExploreIds, [userId]: "true"})
+        console.log("MATCH SUCCESS WITH: ", userId)
+      } else {
+        setMatchedExploreIds({...matchedExploreIds, [userId]: "nomatch"})
+      }
+
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  const initMatchedExploreIds = () => {
+    const tempRecsDict: any = {}
+
+    for (let i = 0; i < recs.length; i++) {
+      tempRecsDict[recs[i].user._id] = "false"
+    }
+
+    setMatchedExploreIds(tempRecsDict)
+  }
+    
+  useEffect(() => {
+    initMatchedExploreIds()
+  }, [recs,])
+
   useEffect(() => {
     // initialize generatedRizzMessages with localStorage one time on initial UI load
     const rizzMessages: any = {};
@@ -180,6 +222,7 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({
       }
     }
 
+    initMatchedExploreIds()
     setGeneratedRizzMessages(rizzMessages);
   }, []);
 
@@ -204,6 +247,13 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({
             borderRadius={"5px"}
           >
             Unmessaged ({matches.unMessagedMatches.length})
+          </Tab>
+          <Tab
+            _selected={{ color: "teal.800", bg: "white" }}
+            _focus={{ boxShadow: "none" }}
+            borderRadius={"5px"}
+          >
+            Explore
           </Tab>
         </TabList>
         <TabPanels>
@@ -363,6 +413,70 @@ const MatchesTabs: React.FC<MatchesTabsProps> = ({
                         </Box>
                       </>
                     ) : null}
+                  </Box>
+                ))}
+              </SimpleGrid>
+            </Box>
+          </TabPanel>
+          <TabPanel>
+            <Box maxH="90vh" overflowY="auto">
+              <SimpleGrid columns={4} spacing={4}>
+                {recs.map((rec: any) => (
+                  <Box
+                    key={rec.user._id}
+                    p={4}
+                    backgroundColor={"darkgray"}
+                    borderRadius="md"
+                    textAlign="center"
+                    display="flex"
+                    flexDirection="column" // Stack items vertically
+                  >
+                    <Flex direction="column" alignItems="center" pb={2}>
+                      <Image
+                        src={rec.user.photos[0].url}
+                        alt={rec.user.name}
+                        width="115px"
+                        height="145px"
+                        borderRadius={"5px"}
+                      />
+                        <Text mt={2} fontWeight="bold">
+                          {rec.user.name}
+                        </Text>
+                      {rec.user.bio ? (
+                        <Text>Bio: {rec.user.bio}</Text>
+                      ) : null}
+                      <br/>
+                      {rec.user.distance_mi ? (<Text fontWeight={"bold"}>Distance: {rec.user.distance_mi}</Text>) : null}
+                    </Flex>
+                    { matchedExploreIds[rec.user._id] === "false" ? <Button
+                      mt="auto"
+                      bg="white"
+                      onClick={() => onClickSendLike(rec.user._id)}
+                    >
+                      {" "}
+                      Like
+                      <Image
+                        pl={2}
+                        src="https://www.svgrepo.com/show/401873/green-heart.svg"
+                        alt="chatGPT"
+                        width="30px"
+                      />
+                    </Button> : null }
+                    { matchedExploreIds[rec.user._id] === "true" ? <Button
+                      mt="auto"
+                      bg="white"
+                    >
+                      {" "}
+                      Matched!
+                    </Button> : null }
+
+                    { matchedExploreIds[rec.user._id] === "nomatch" ? <Button
+                      mt="auto"
+                      bg="white"
+                    >
+                      {" "}
+                      No Match!
+                    </Button> : null }
                   </Box>
                 ))}
               </SimpleGrid>

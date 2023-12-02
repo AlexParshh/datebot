@@ -11,7 +11,7 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 import axios from "axios";
 import MatchesTabs from "../components/MatchesTabs";
-import { SettingsIcon } from "@chakra-ui/icons";
+import { SettingsIcon, RepeatIcon } from "@chakra-ui/icons";
 import SettingsModal from "../components/SettingsModal";
 import {
   setSettingsToLocalStorage,
@@ -23,6 +23,7 @@ const HomePage = () => {
   const { xAuthToken, userSessionId, clearAuthCredentials } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [matches, setMatches] = useState<any>(null);
+  const [recs, setRecs] = useState<any>([]);
 
   // Model, Background Info, Social Media Handles, Phone Number
   const [settings, setSettings] = useState<{
@@ -40,6 +41,19 @@ const HomePage = () => {
   });
 
   const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const fetchRecs = async () => {
+    try {
+        const response = await axios.post("/api/getrecs", {
+            xAuthToken,
+            userSessionId,
+        });
+        console.log(response)
+        setRecs(response.data.recommendations);
+    } catch (error) {
+        console.error("Error fetching recs:", error);
+    }
+};
 
   const fetchMatches = async () => {
     try {
@@ -80,6 +94,7 @@ const HomePage = () => {
 
     fetchProfile();
     fetchMatches();
+    fetchRecs();
   }, []);
 
   const handleLogout = () => {
@@ -114,7 +129,13 @@ const HomePage = () => {
             icon={<SettingsIcon />}
             onClick={onOpen}
           />
-          <Button onClick={handleLogout}>Logout</Button>
+          <Button mr={2} onClick={handleLogout}>Logout</Button>
+          <IconButton
+            mr={2}
+            aria-label="Refresh"
+            icon={<RepeatIcon />}
+            onClick={fetchRecs}
+          />
         </Flex>
       </Flex>
       {profile && matches && (
@@ -129,6 +150,7 @@ const HomePage = () => {
             settings={settings}
             matches={matches}
             profileId={profile._id}
+            recs={recs}
             fetchMatches={fetchMatches}
           />
         </Box>
