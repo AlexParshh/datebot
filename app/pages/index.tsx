@@ -102,6 +102,20 @@ const HomePage = () => {
     router.push("/login");
   };
 
+  const updateUserLocation = async (lat:string,lon:string) => {
+    try {
+      const response = await axios.post("/api/ping", {
+        xAuthToken,
+        userSessionId,
+        lat,
+        lon
+      });
+
+    } catch (error) {
+      console.error("Error updating location:", error);
+    }
+  }
+
   return (
     <Box
       p={4}
@@ -110,6 +124,7 @@ const HomePage = () => {
       color="white"
     >
       <SettingsModal
+        updateUserLocation={updateUserLocation}
         isOpen={isOpen}
         onClose={onClose}
         setSettings={(settings) => {

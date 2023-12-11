@@ -26,18 +26,22 @@ interface SettingsModalProps {
     snapchat: string;
     phoneNumber: string;
   }) => void;
+  updateUserLocation: (lat: string, lon: string) => void;
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
   onClose,
   setSettings,
+  updateUserLocation
 }) => {
   const [selectedModel, setSelectedModel] = useState<string>("GPT-3.5-Turbo");
   const [backgroundInfo, setBackgroundInfo] = useState<string>("");
   const [instagram, setInstagram] = useState<string>("");
   const [snapchat, setSnapchat] = useState<string>("");
   const [phoneNumber, setPhoneNumber] = useState<string>("");
+  const [lat, setLat] = useState<string>("");
+  const [lon, setLon] = useState<string>("");
 
   useEffect(() => {
     // Fetches settings from localStorage, to be passed into the generateConversation endpoint.
@@ -62,6 +66,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
       snapchat,
       phoneNumber,
     });
+
+    if (lat && lon) {
+      updateUserLocation(lat,lon);
+      setLat("");
+      setLon("");
+    }
+
     onClose(); // close the modal after saving changes
   };
 
@@ -117,6 +128,24 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
               placeholder="Enter phone number"
+            />
+          </FormControl>
+
+          <FormControl mt={4}>
+            <FormLabel>Latitude</FormLabel>
+            <Input
+              value={lat}
+              onChange={(e) => setLat(e.target.value)}
+              placeholder="Enter new Latitude"
+            />
+          </FormControl>
+
+          <FormControl mt={4}>
+            <FormLabel>Longitude</FormLabel>
+            <Input
+              value={lon}
+              onChange={(e) => setLon(e.target.value)}
+              placeholder="Enter new Longitude"
             />
           </FormControl>
         </ModalBody>
