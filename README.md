@@ -1,5 +1,5 @@
-# tinderbot
-In the modern world, too many people struggle with dating, therefore Tinderbot has been created to remove the stress of having too many matches and not knowing what to say to them. Tinderbot saves time for users so that they can increase their conversion rates for going on dates. Tinderbot allows users who have no "game" or "rizz" to connect their tinder accounts along with their openai account to leverage the full powers of AI to secure dates and level up their messaging skills.
+# datebot
+In the modern world, too many people struggle with dating, therefore datebot has been created to remove the stress of having too many matches and not knowing what to say to them. datebot saves time for users so that they can increase their conversion rates for going on dates. datebot allows users to connect their tinder accounts along with their openai account to leverage the full powers of AI to secure dates and level up their messaging skills.
 
 # Usage
 
@@ -25,25 +25,25 @@ Find a match, press generate rizz, and if you like what it generated, you can se
 
 Tinderbot will seperate your matches based on whether you have messaged them yet or not. It will attempt to write pick up lines for those that have not been messaged, based on their account information such as biography and interests.
 
-![unmessagedclean](https://github.com/AlexParshh/tinderbot/assets/53206800/b048f557-55ec-4e9b-b591-c4173b79ee85)
+![263770265-b048f557-55ec-4e9b-b591-c4173b79ee85](https://github.com/user-attachments/assets/d745fef4-b377-49c8-b1d3-ad33359a2355)
 
-Here is a full flow example:
+Here is a full flow example (profile images has been made hidden):
 
-![singularclean](https://github.com/AlexParshh/tinderbot/assets/53206800/0983cf55-09ac-4d1a-b8b1-28bfe8f9e18f)
-
+![263770311-0983cf55-09ac-4d1a-b8b1-28bfe8f9e18f](https://github.com/user-attachments/assets/149ea03f-7287-4d2c-8fd9-d43c8346c979)
 
 Upon pressing Send Rizz you will see that the UI updates and the match will get moved to the "messaged" section. 
 
 You can check your mobile tinder app to see that it has in fact been sent:
 
-<img width="428" alt="mobile" src="https://github.com/AlexParshh/tinderbot/assets/53206800/7a68a408-bc75-4665-812c-2f577ee32b80">
+<img width="428" alt="263770361-7a68a408-bc75-4665-812c-2f577ee32b80" src="https://github.com/user-attachments/assets/fa989226-d9b5-4456-adb7-66a3c9bca7a7">
 
 And now the match will look as follows:
 
-![singularpostclean](https://github.com/AlexParshh/tinderbot/assets/53206800/e58df381-d80e-4f7e-9479-f9050d08a5ce)
+![263770398-e58df381-d80e-4f7e-9479-f9050d08a5ce](https://github.com/user-attachments/assets/9fa7624c-2df4-457c-b2d3-ac8c7fd101e4)
+
 
 Here is an example of responding to a match that has an exisitng message history, tinderbot will take into account the entire message history for every response, meaning that if you have 100 messages of history, it will know the full context:
 
-![faceclean](https://github.com/AlexParshh/tinderbot/assets/53206800/15545723-fb4b-409e-a810-88dc7033f63f)
+![263770446-15545723-fb4b-409e-a810-88dc7033f63f](https://github.com/user-attachments/assets/a3e404a4-00e9-49c2-8249-4d228d514304)
 
 
